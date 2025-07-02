@@ -39,7 +39,12 @@ async function airdrop(connection: Connection, publicKey: PublicKey, sol = 10) {
     publicKey,
     anchor.web3.LAMPORTS_PER_SOL * sol
   );
-  await connection.confirmTransaction(sig, "confirmed");
+  const latestBlockhash = await connection.getLatestBlockhash();
+  await connection.confirmTransaction({
+    blockhash: latestBlockhash.blockhash,
+    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    signature: sig,
+  });
 }
 
 async function main() {
