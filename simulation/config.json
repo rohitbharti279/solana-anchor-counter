@@ -1,0 +1,12 @@
+{
+  "programId": "YourProgramIdHere",
+  "actors": {
+    "user": 5,
+    "admin": 1
+  },
+  "options": {
+    "iterations": 10,
+    "network": "http://localhost:8899",
+    "commitment": "confirmed"
+  }
+}
