@@ -22,9 +22,16 @@ interface SolanaAccount extends Account {
   keypair: Keypair;
   publicKey: PublicKey;
   balance: number;
+  type: "key" | "contract";
+  address: string;
+  value: any;
 }
 
 class SolanaSnapshotProvider {
+  async snapshot() {
+    // Return a dummy snapshot object matching the Snapshot interface
+    return { contractSnapshot: {}, accountSnapshot: {} };
+  }
   async capture() {
     // Snapshot logic (optional or manual for now)
   }
@@ -88,6 +95,9 @@ async function main() {
       keypair,
       publicKey: keypair.publicKey,
       balance: 0, // Will be airdropped
+      type: "key",
+      address: keypair.publicKey.toString(),
+      value: keypair,
     });
   }
 
@@ -104,8 +114,7 @@ async function main() {
     new Actor(
       "program",
       {
-        type: "program",
-        // address: programId.toBase58(),
+        type: "contract", // must be 'key' or 'contract'
         address: programId.toString(),
         value: program,
       },
