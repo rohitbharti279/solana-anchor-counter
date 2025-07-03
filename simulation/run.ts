@@ -64,88 +64,93 @@ console.log("Config JSON:", JSON.stringify(config, null, 2));
 
 
 async function main() {
-  console.log("Starting Solana simulation...");
-  // if (!config.actors || !config.options) {
-  //   throw new Error("Invalid config structure");
-  // }
-  if (typeof config !== 'object' || !config.actors || !config.options) {
-  throw new Error("Invalid config.json structure — missing actors or options");
-}
+  try {
+    console.log("Starting Solana simulation...");
+    // if (!config.actors || !config.options) {
+    //   throw new Error("Invalid config structure");
+    // }
+    if (typeof config !== 'object' || !config.actors || !config.options) {
+      throw new Error("Invalid config.json structure — missing actors or options");
+    }
 
-  const opts = config.options as SolanaRunnerOptions;
+    const opts = config.options as SolanaRunnerOptions;
 
-  // Setup connection and provider
-  const connection = new Connection(
-    opts.network || "http://localhost:8899",
-    opts.commitment || "confirmed"
-  );
-  const wallet = anchor.Wallet.local();
-  const provider = new anchor.AnchorProvider(connection, wallet, {
-    commitment: opts.commitment || "confirmed",
-  });
-  anchor.setProvider(provider);
-
-  // Load program
-  const idl = idlJson as anchor.Idl;
-  const programId = new anchor.web3.PublicKey(config.programId);
-  const program = new anchor.Program(idl, provider);
-
-  // Prepare test accounts
-  const totalActors = Object.values(config.actors).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-  const accounts: SolanaAccount[] = [];
-
-  for (let i = 0; i < totalActors; i++) {
-    const keypair = Keypair.generate();
-    await airdrop(connection, keypair.publicKey);
-    accounts.push({
-      id: `account_${i}`,
-      keypair,
-      publicKey: keypair.publicKey,
-      balance: 0, // Will be airdropped
-      type: "key",
-      address: keypair.publicKey.toString(),
-      value: keypair,
+    // Setup connection and provider
+    const connection = new Connection(
+      opts.network || "http://localhost:8899",
+      opts.commitment || "confirmed"
+    );
+    const wallet = anchor.Wallet.local();
+    const provider = new anchor.AnchorProvider(connection, wallet, {
+      commitment: opts.commitment || "confirmed",
     });
-  }
+    anchor.setProvider(provider);
 
-  // Setup environment and actors
-  const env = new Environment();
-  const actors = setupActors(config, accounts, program);
+    // Load program
+    const idl = idlJson as anchor.Idl;
+    const programId = new anchor.web3.PublicKey(config.programId);
+    const program = new anchor.Program(idl, provider);
 
-  for (const actor of actors) {
-    env.addAgent(actor);
-  }
+    // Prepare test accounts
+    const totalActors = Object.values(config.actors).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const accounts: SolanaAccount[] = [];
 
-  // Add program as an agent for state tracking
-  env.addAgent(
-    new Actor(
-      "program",
-      {
-        type: "contract", // must be 'key' or 'contract'
-        address: programId.toString(),
-        value: program,
+    for (let i = 0; i < totalActors; i++) {
+      const keypair = Keypair.generate();
+      await airdrop(connection, keypair.publicKey);
+      accounts.push({
+        id: `account_${i}`,
+        keypair,
+        publicKey: keypair.publicKey,
+        balance: 0, // Will be airdropped
+        type: "key",
+        address: keypair.publicKey.toString(),
+        value: keypair,
+      });
+    }
+
+    // Setup environment and actors
+    const env = new Environment();
+    const actors = setupActors(config, accounts, program);
+
+    for (const actor of actors) {
+      env.addAgent(actor);
+    }
+
+    // Add program as an agent for state tracking
+    env.addAgent(
+      new Actor(
+        "program",
+        {
+          type: "contract", // must be 'key' or 'contract'
+          address: programId.toString(),
+          value: program,
+        },
+        []
+      )
+    );
+
+    // Hooks before/after iteration
+    const snapshotProvider = new SolanaSnapshotProvider();
+    const hooks: Hooks = {
+      beforeIteration: async (context: RunContext) => {
+        console.log(`Starting iteration ${context.iter + 1}/${opts.iterations}`);
       },
-      []
-    )
-  );
+      afterIteration: async (context: RunContext) => {
+        console.log(`Completed iteration ${context.iter + 1}/${opts.iterations}`);
+      },
+    };
 
-  // Hooks before/after iteration
-  const snapshotProvider = new SolanaSnapshotProvider();
-  const hooks: Hooks = {
-    beforeIteration: async (context: RunContext) => {
-      console.log(`Starting iteration ${context.iter + 1}/${opts.iterations}`);
-    },
-    afterIteration: async (context: RunContext) => {
-      console.log(`Completed iteration ${context.iter + 1}/${opts.iterations}`);
-    },
-  };
-
-  // Start runner
-  const runner = new Runner(program, actors, snapshotProvider, opts, hooks);
-  await runner.run();
+    // Start runner
+    const runner = new Runner(program, actors, snapshotProvider, opts, hooks);
+    await runner.run();
+  } catch (error) {
+    console.error("Detailed error:", error);
+    process.exit(1);
+  }
 }
 
 main()
