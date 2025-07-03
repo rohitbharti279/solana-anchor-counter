@@ -3,12 +3,14 @@
     "types": ["mocha", "chai"],
     "typeRoots": ["./node_modules/@types"],
     "lib": ["es2022"],
-    "module": "commonjs",
-    // "module": "ESNext",
-    // "moduleResolution": "bundler",
+    // "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "target": "ES2022",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "resolveJsonModule": true,
     "outDir": "dist"
   }

@@ -4,9 +4,9 @@ import type { Account, RunContext, Hooks } from "@svylabs/ilumina";
 import * as anchor from "@coral-xyz/anchor";
 import { Keypair, Connection, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
-import * as config from "./config.json";
-import { setupActors } from "./actors";
-import idlJson from "../target/idl/solana_counter.json";
+import { setupActors } from "./actors.js";
+import config from "./config.json" with { type: "json" };
+import idlJson from "../target/idl/solana_counter.json" with { type: "json" };
 import type { SolanaCounter } from "../target/types/solana_counter";
 
 // Define expected config types
@@ -57,10 +57,20 @@ async function airdrop(connection: Connection, publicKey: PublicKey, sol = 10) {
   });
 }
 
+console.log("Type of config:", typeof config);
+console.log("Prototype:", Object.getPrototypeOf(config));
+console.log("Config raw object:", config);
+console.log("Config JSON:", JSON.stringify(config, null, 2));
+
+
 async function main() {
-  if (!config.actors || !config.options) {
-    throw new Error("Invalid config structure");
-  }
+  console.log("Starting Solana simulation...");
+  // if (!config.actors || !config.options) {
+  //   throw new Error("Invalid config structure");
+  // }
+  if (typeof config !== 'object' || !config.actors || !config.options) {
+  throw new Error("Invalid config.json structure — missing actors or options");
+}
 
   const opts = config.options as SolanaRunnerOptions;
 

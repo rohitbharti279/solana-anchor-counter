@@ -2,8 +2,9 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "start": "NODE_OPTIONS='--import tsx' node simulation/run.ts",
+    "test": "NODE_OPTIONS='--import tsx' mocha -r tsx test/**/*.test.ts",
+    "dev": "tsx watch simulation/run.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
