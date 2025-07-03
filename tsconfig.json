@@ -2,10 +2,14 @@
   "compilerOptions": {
     "types": ["mocha", "chai"],
     "typeRoots": ["./node_modules/@types"],
-    "lib": ["es2015"],
+    "lib": ["es2022"],
     "module": "commonjs",
-    "target": "es6",
+    // "module": "ESNext",
+    // "moduleResolution": "bundler",
+    "target": "ES2022",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "outDir": "dist"
   }
 }
