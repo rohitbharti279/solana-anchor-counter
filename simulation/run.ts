@@ -89,6 +89,7 @@ async function main() {
     // Load program
     const idl = idlJson as anchor.Idl;
     const programId = new anchor.web3.PublicKey(config.programId);
+    // const program = new anchor.Program(idl, programId, provider);
     const program = new anchor.Program(idl, provider);
 
     // Prepare test accounts
