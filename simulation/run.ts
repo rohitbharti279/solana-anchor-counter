@@ -34,11 +34,14 @@ class SolanaSnapshotProvider {
   }
 }
 
+// Modern Solana airdrop with recommended confirmation strategy
 async function airdrop(connection: Connection, publicKey: PublicKey, sol = 10) {
+  // Request an airdrop of SOL to the given public key
   const sig = await connection.requestAirdrop(
     publicKey,
     anchor.web3.LAMPORTS_PER_SOL * sol
   );
+  // Use the latest blockhash and lastValidBlockHeight for confirmation (recommended by Solana)
   const latestBlockhash = await connection.getLatestBlockhash();
   await connection.confirmTransaction({
     blockhash: latestBlockhash.blockhash,
@@ -68,7 +71,6 @@ async function main() {
   // Load program
   const idl = idlJson as anchor.Idl;
   const programId = new anchor.web3.PublicKey(config.programId);
-//   const program = new anchor.Program(idl, programId, provider);
   const program = new anchor.Program(idl, provider);
 
   // Prepare test accounts
