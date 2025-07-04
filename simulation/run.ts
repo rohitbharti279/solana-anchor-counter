@@ -2,6 +2,7 @@
 import { Actor, Runner, Environment } from "@svylabs/ilumina";
 import type { Account, RunContext, Hooks } from "@svylabs/ilumina";
 import * as anchor from "@coral-xyz/anchor";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { Keypair, Connection, PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 import { setupActors } from "./actors.js";
@@ -61,14 +62,18 @@ console.log("Type of config:", typeof config);
 console.log("Prototype:", Object.getPrototypeOf(config));
 console.log("Config raw object:", config);
 console.log("Config JSON:", JSON.stringify(config, null, 2));
-
+const idl = JSON.parse(JSON.stringify(idlJson));
+if (!idl.accounts) {
+  throw new Error("IDL is missing accounts definitions");
+}
+console.log("IDL JSON:", JSON.stringify(idlJson, null, 2));
+console.log("IDL type:", typeof idlJson);
+console.log("IDL accounts:", idl.accounts);
 
 async function main() {
   try {
     console.log("Starting Solana simulation...");
-    // if (!config.actors || !config.options) {
-    //   throw new Error("Invalid config structure");
-    // }
+
     if (typeof config !== 'object' || !config.actors || !config.options) {
       throw new Error("Invalid config.json structure — missing actors or options");
     }
@@ -85,14 +90,31 @@ async function main() {
       commitment: opts.commitment || "confirmed",
     });
     anchor.setProvider(provider);
+    console.log("connection successfully established", connection.rpcEndpoint);
 
-    // Load program
-    const idl = idlJson as anchor.Idl;
+    // Load and validate IDL
+    const rawIdl = JSON.parse(JSON.stringify(idlJson));
+    if (!rawIdl.accounts) {
+      throw new Error("IDL is missing accounts definitions");
+    }
+    console.log("successfully loaded IDL", rawIdl);
+    // Manually add size to accounts in IDL
+    const idl = {
+      ...rawIdl,
+      accounts: rawIdl.accounts.map((account: any) => ({
+        ...account,
+        size: account.name === 'Counter' ? 16 : 0 // 8 discriminator + 8 u64
+      }))
+    };
+
     const programId = new anchor.web3.PublicKey(config.programId);
+    console.log("Program ID:", programId.toString());
     // const program = new anchor.Program(idl, programId, provider);
-    const program = new anchor.Program(idl, provider);
+    const program = new Program(idl as SolanaCounter, provider);
+    console.log("Program successfully loaded", program);
 
     // Prepare test accounts
+    console.log("Preparing test accounts...");
     const totalActors = Object.values(config.actors).reduce(
       (sum, count) => sum + count,
       0
@@ -114,6 +136,7 @@ async function main() {
     }
 
     // Setup environment and actors
+    console.log("Setting up environment and actors...");
     const env = new Environment();
     const actors = setupActors(config, accounts, program);
 
@@ -135,6 +158,7 @@ async function main() {
     );
 
     // Hooks before/after iteration
+    console.log("Setting up snapshot provider and hooks...");
     const snapshotProvider = new SolanaSnapshotProvider();
     const hooks: Hooks = {
       beforeIteration: async (context: RunContext) => {
