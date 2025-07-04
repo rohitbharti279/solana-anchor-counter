@@ -168,7 +168,6 @@ async function main() {
     const runner = new Runner(program, actors, snapshotProvider, opts, hooks);
     console.log("Running simulation with options:", opts);
     await runner.run();
-    console.log("Simulation completed successfully");
   } catch (error) {
     console.error("Detailed error:", error);
     process.exit(1);

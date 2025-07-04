@@ -107,8 +107,8 @@ export function createSolanaActor(account: SolanaAccount, program: Program): Act
     minimalAccount,
     actions
   );
-  (actor as any)._initialize = actions[0].action.execute.bind(actions[0].action);
-  (actor as any)._increment = actions[1].action.execute.bind(actions[1].action);
+  // (actor as any)._initialize = actions[0].action.execute.bind(actions[0].action);
+  // (actor as any)._increment = actions[1].action.execute.bind(actions[1].action);
   return actor;
 }
 
