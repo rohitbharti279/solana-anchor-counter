@@ -35,7 +35,7 @@ export function setupActors(
       // Define actions for each actor
       const actions = [
         new Action(
-          'initialize_counter',
+          'initialize',
           async () => {
             try {
               const counterPda = getCounterPda(account.publicKey);
@@ -58,7 +58,7 @@ export function setupActors(
           100 // 100% probability
         ),
         new Action(
-          'increment_counter',
+          'increment',
           async () => {
             try {
               const counterPda = getCounterPda(account.publicKey);

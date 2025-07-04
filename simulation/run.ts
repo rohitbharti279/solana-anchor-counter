@@ -58,17 +58,17 @@ async function airdrop(connection: Connection, publicKey: PublicKey, sol = 10) {
   });
 }
 
-console.log("Type of config:", typeof config);
-console.log("Prototype:", Object.getPrototypeOf(config));
-console.log("Config raw object:", config);
-console.log("Config JSON:", JSON.stringify(config, null, 2));
-const idl = JSON.parse(JSON.stringify(idlJson));
-if (!idl.accounts) {
-  throw new Error("IDL is missing accounts definitions");
-}
-console.log("IDL JSON:", JSON.stringify(idlJson, null, 2));
-console.log("IDL type:", typeof idlJson);
-console.log("IDL accounts:", idl.accounts);
+// console.log("Type of config:", typeof config);
+// console.log("Prototype:", Object.getPrototypeOf(config));
+// console.log("Config raw object:", config);
+// console.log("Config JSON:", JSON.stringify(config, null, 2));
+// const idl = JSON.parse(JSON.stringify(idlJson));
+// if (!idl.accounts) {
+//   throw new Error("IDL is missing accounts definitions");
+// }
+// console.log("IDL JSON:", JSON.stringify(idlJson, null, 2));
+// console.log("IDL type:", typeof idlJson);
+// console.log("IDL accounts:", idl.accounts);
 
 async function main() {
   try {
@@ -93,25 +93,19 @@ async function main() {
     console.log("connection successfully established", connection.rpcEndpoint);
 
     // Load and validate IDL
-    const rawIdl = JSON.parse(JSON.stringify(idlJson));
-    if (!rawIdl.accounts) {
-      throw new Error("IDL is missing accounts definitions");
+
+    const idl = idlJson as anchor.Idl;
+    if (!idl) {
+      throw new Error("IDL is missing or invalid");
     }
-    console.log("successfully loaded IDL", rawIdl);
-    // Manually add size to accounts in IDL
-    const idl = {
-      ...rawIdl,
-      accounts: rawIdl.accounts.map((account: any) => ({
-        ...account,
-        size: account.name === 'Counter' ? 16 : 0 // 8 discriminator + 8 u64
-      }))
-    };
+    console.log("IDL successfully loaded:", idl);
+    // console.log("IDL JSON:", JSON.stringify(idlJson, null, 2));
 
     const programId = new anchor.web3.PublicKey(config.programId);
     console.log("Program ID:", programId.toString());
     // const program = new anchor.Program(idl, programId, provider);
     const program = new Program(idl as SolanaCounter, provider);
-    console.log("Program successfully loaded", program);
+    console.log("Program successfully loaded:", program);
 
     // Prepare test accounts
     console.log("Preparing test accounts...");
@@ -170,8 +164,11 @@ async function main() {
     };
 
     // Start runner
+    console.log("Starting simulation runner...");
     const runner = new Runner(program, actors, snapshotProvider, opts, hooks);
+    console.log("Running simulation with options:", opts);
     await runner.run();
+    console.log("Simulation completed successfully");
   } catch (error) {
     console.error("Detailed error:", error);
     process.exit(1);
