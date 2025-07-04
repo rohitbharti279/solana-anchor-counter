@@ -1,31 +1,45 @@
 # Solana Counter Simulation
 
-## Quick Start
+## Workflow
 
-### 1. Start the Solana Local Validator
+1. **Start the Solana Local Validator**
 
-Open a terminal and run:
+   Open a terminal and run:
+   ```bash
+   solana-test-validator --reset
+   ```
 
-```bash
-solana-test-validator --reset
-```
+2. **Clean previous builds**
 
-### 2. Run the Simulation
+   ```bash
+   anchor clean
+   rm -rf target/idl
+   ```
 
-Open another terminal in this project directory and run:
+3. **Rebuild and deploy the program**
 
-```bash
-export ANCHOR_WALLET=~/.config/solana/id.json
-npx tsx simulation/run.ts
-```
+   ```bash
+   anchor build
+   anchor deploy
+   ```
 
-### Alternative: Using npm script
+4. **Verify deployment**
 
-You can also run:
+   ```bash
+   solana program show --programs
+   ```
 
-```bash
-npm run start
-```
+5. **Run the Simulation**
+
+   Open another terminal in this project directory and run:
+   ```bash
+   export ANCHOR_WALLET=~/.config/solana/id.json
+   npx tsx simulation/run.ts
+   ```
+   Or, using npm script:
+   ```bash
+   npm run start
+   ```
 
 ---
 
